@@ -34,9 +34,6 @@ function App() {
 	const [isError, setIsError] = useState(false)
 	const [message, setMessage] = useState(null)
 
-	const [currentTime, setCurrentTime] = useState(new Date().getTime())
-	const [revealTime, setRevealTime] = useState(0)
-
 	const [counter, setCounter] = useState(7)
 	const [isCycling, setIsCycling] = useState(false)
 
@@ -50,12 +47,8 @@ function App() {
 			const totalSupply = await moonNft.methods.totalSupply().call()
 			setSupplyAvailable(maxSupply - totalSupply)
 
-			const allowMintingAfter = await moonNft.methods.allowMintingAfter().call()
-			const timeDeployed = await moonNft.methods.timeDeployed().call()
-			setRevealTime((Number(timeDeployed) + Number(allowMintingAfter)).toString() + '000')
-
 			if (_account) {
-				const ownerOf = await moonNft.methods.walletOfOwner(_account).call()
+				const ownerOf = await moonNft.methods.balance(_account).call()
 				setOwnerOf(ownerOf)
 				console.log(ownerOf)
 			} else {
@@ -115,11 +108,6 @@ function App() {
 	}
 
 	const mintNFTHandler = async () => {
-		if (revealTime > new Date().getTime()) {
-			window.alert('Minting is not live yet!')
-			return
-		}
-
 		if (ownerOf.length > 0) {
 			window.alert('You\'ve already minted!')
 			return
@@ -136,7 +124,7 @@ function App() {
 					const totalSupply = await moonNft.methods.totalSupply().call()
 					setSupplyAvailable(maxSupply - totalSupply)
 
-					const ownerOf = await moonNft.methods.walletOfOwner(account).call()
+					const ownerOf = await moonNft.methods.balance(account).call()
 					setOwnerOf(ownerOf)
 				})
 				.on('error', (error) => {
@@ -205,7 +193,6 @@ function App() {
 							/>
 						</Col>
 						<Col md={5} lg={4} xl={5} xxl={4}>
-							{revealTime !== 0 && <Countdown date={currentTime + (revealTime - currentTime)} className='countdown mx-3' />}
 							<p className='text'>
 								generate NFT images, upload to IPFS, create your NFT contract, and use OpenSea!
 							</p>
@@ -219,7 +206,7 @@ function App() {
 					<Row className='flex m-3'>
 						<h2 className='text-center p-3'>About the Collection</h2>
 						<Col md={5} lg={4} xl={5} xxl={4} className='text-center'>
-							<img src={showcase} alt="Multiple Crypto Punks" className='showcase' />
+							<img src={showcase} alt="Multiple Moon NFTs" className='showcase' />
 						</Col>
 						<Col md={5} lg={4} xl={5} xxl={4}>
 							{isError ? (
@@ -227,7 +214,6 @@ function App() {
 							) : (
 								<div>
 									<h3>Mint your NFT in</h3>
-									{revealTime !== 0 && <Countdown date={currentTime + (revealTime - currentTime)} className='countdown' />}
 									<ul>
 										<li>5 generated moon images </li>
 										<li>Free minting on Rinkeby testnet</li>
