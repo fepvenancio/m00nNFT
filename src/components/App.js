@@ -14,12 +14,12 @@ import '../App.css'
 import Navbar from './Navbar'
 
 // Import ABI + Config
-import MoonNft from '../abis/MoonNFT.json'
+import MoonNFT from '../abis/MoonNFT.json'
 import config from '../config.json'
 
 function App() {
 	const [web3, setWeb3] = useState(null)
-	const [moonNft, setMoonNft] = useState(null)
+	const [moonNFT, setMoonNFT] = useState(null)
 
 	const [supplyAvailable, setSupplyAvailable] = useState(0)
 
@@ -34,21 +34,28 @@ function App() {
 	const [isError, setIsError] = useState(false)
 	const [message, setMessage] = useState(null)
 
+	const [currentTime, setCurrentTime] = useState(new Date().getTime())
+	const [revealTime, setRevealTime] = useState(0)
+
 	const [counter, setCounter] = useState(7)
 	const [isCycling, setIsCycling] = useState(false)
 
 	const loadBlockchainData = async (_web3, _account, _networkId) => {
 		// Fetch Contract, Data, etc.
 		try {
-			const moonNft = new _web3.eth.Contract(MoonNft.abi, MoonNft.networks[_networkId].address)
-			setMoonNft(moonNft)
+			const moonNFT = new _web3.eth.Contract(MoonNFT.abi, MoonNFT.networks[_networkId].address)
+			setMoonNFT(moonNFT)
 
-			const maxSupply = await moonNft.methods.maxSupply().call()
-			const totalSupply = await moonNft.methods.totalSupply().call()
+			const maxSupply = await moonNFT.methods.maxSupply().call()
+			const totalSupply = await moonNFT.methods.totalSupply().call()
 			setSupplyAvailable(maxSupply - totalSupply)
 
+			const allowMintingAfter = await moonNFT.methods.allowMintingAfter().call()
+			const timeDeployed = await moonNFT.methods.timeDeployed().call()
+			setRevealTime((Number(timeDeployed) + Number(allowMintingAfter)).toString() + '000')
+
 			if (_account) {
-				const ownerOf = await moonNft.methods.balance(_account).call()
+				const ownerOf = await moonNFT.methods.walletOfOwner(_account).call()
 				setOwnerOf(ownerOf)
 				console.log(ownerOf)
 			} else {
@@ -108,23 +115,28 @@ function App() {
 	}
 
 	const mintNFTHandler = async () => {
+		if (revealTime > new Date().getTime()) {
+			window.alert('Minting is not live yet!')
+			return
+		}
+
 		if (ownerOf.length > 0) {
 			window.alert('You\'ve already minted!')
 			return
 		}
 
 		// Mint NFT
-		if (moonNft && account) {
+		if (moonNFT && account) {
 			setIsMinting(true)
 			setIsError(false)
 
-			await moonNft.methods.mint(1).send({ from: account, value: 0 })
+			await moonNFT.methods.mint(1).send({ from: account, value: 0 })
 				.on('confirmation', async () => {
-					const maxSupply = await moonNft.methods.maxSupply().call()
-					const totalSupply = await moonNft.methods.totalSupply().call()
+					const maxSupply = await moonNFT.methods.maxSupply().call()
+					const totalSupply = await moonNFT.methods.totalSupply().call()
 					setSupplyAvailable(maxSupply - totalSupply)
 
-					const ownerOf = await moonNft.methods.balance(account).call()
+					const ownerOf = await moonNFT.methods.walletOfOwner(account).call()
 					setOwnerOf(ownerOf)
 				})
 				.on('error', (error) => {
@@ -159,8 +171,8 @@ function App() {
 
 					<Row className='header my-3 p-3 mb-0 pb-0'>
 						<Col xs={12} md={12} lg={8} xxl={8}>
-							<h1>Moon NFT</h1>
-							<p className='sub-header'>NFT Minting Demo</p>
+							<h1>m00n NFT</h1>
+							<p className='sub-header'>Availble on 26 / 05 / 22</p>
 						</Col>
 						<Col className='flex social-icons'>
 							<a
@@ -193,8 +205,9 @@ function App() {
 							/>
 						</Col>
 						<Col md={5} lg={4} xl={5} xxl={4}>
+							{revealTime !== 0 && <Countdown date={currentTime + (revealTime - currentTime)} className='countdown mx-3' />}
 							<p className='text'>
-								generate NFT images, upload to IPFS, create your NFT contract, and use OpenSea!
+								Create your NFT contract, and use OpenSea!
 							</p>
 							<a href="#about" className='button mx-3'>Learn More!</a>
 						</Col>
@@ -206,7 +219,7 @@ function App() {
 					<Row className='flex m-3'>
 						<h2 className='text-center p-3'>About the Collection</h2>
 						<Col md={5} lg={4} xl={5} xxl={4} className='text-center'>
-							<img src={showcase} alt="Multiple Moon NFTs" className='showcase' />
+							<img src={showcase} alt="Multiple Crypto Punks" className='showcase' />
 						</Col>
 						<Col md={5} lg={4} xl={5} xxl={4}>
 							{isError ? (
@@ -214,8 +227,9 @@ function App() {
 							) : (
 								<div>
 									<h3>Mint your NFT in</h3>
+									{revealTime !== 0 && <Countdown date={currentTime + (revealTime - currentTime)} className='countdown' />}
 									<ul>
-										<li>5 generated moon images </li>
+										<li>1,000 generated punked out images using an art generator</li>
 										<li>Free minting on Rinkeby testnet</li>
 										<li>Viewable on Opensea shortly after minting</li>
 									</ul>
@@ -229,7 +243,7 @@ function App() {
 									{ownerOf.length > 0 &&
 										<p><small>View your NFT on
 											<a
-												href={`${openseaURL}/assets/${moonNft._address}/${ownerOf[0]}`}
+												href={`${openseaURL}/assets/${moonNFT._address}/${ownerOf[0]}`}
 												target='_blank'
 												style={{ display: 'inline-block', marginLeft: '3px' }}>
 												OpenSea
@@ -242,12 +256,12 @@ function App() {
 
 					<Row style={{ marginTop: "100px" }}>
 						<Col>
-							{moonNft &&
+							{moonNFT &&
 								<a
-									href={`${explorerURL}/address/${moonNft._address}`}
+									href={`${explorerURL}/address/${moonNFT._address}`}
 									target='_blank'
 									className='text-center'>
-									{moonNft._address}
+									{moonNFT._address}
 								</a>
 							}
 						</Col>
