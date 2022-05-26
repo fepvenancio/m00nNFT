@@ -1,0 +1,23 @@
+{
+    "PROJECT_NAME": "moonNFT",
+    "NETWORKS": {
+        "1": {
+            "name": "Ethereum Mainnet",
+            "isTestnet": false,
+            "explorerURL": "https://etherscan.io",
+            "openseaURL": "https://opensea.io"
+        },
+        "4": {
+            "name": "Rinkeby Testnet",
+            "isTestnet": true,
+            "explorerURL": "https://rinkeby.etherscan.io",
+            "openseaURL": "https://testnets.opensea.io"
+        },
+        "5777": {
+            "name": "Localhost",
+            "isTestnet": true,
+            "explorerURL": null,
+            "openseaURL": null
+        }
+    }
+}
