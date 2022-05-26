@@ -229,7 +229,7 @@ function App() {
 									<h3>Mint your NFT in</h3>
 									{revealTime !== 0 && <Countdown date={currentTime + (revealTime - currentTime)} className='countdown' />}
 									<ul>
-										<li>1,000 generated punked out images using an art generator</li>
+										<li>5 generated moon images using an art generator</li>
 										<li>Free minting on Rinkeby testnet</li>
 										<li>Viewable on Opensea shortly after minting</li>
 									</ul>
